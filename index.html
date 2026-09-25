@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oral Midterm - Práctica Inglés</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #0f1923; color: #e8edf2; min-height: 100vh; padding: 20px 20px 60px; }
+  .watermark { position: fixed; bottom: 12px; right: 16px; font-size: 0.72rem; color: #2a3f52; font-weight: 700; letter-spacing: 1px; z-index: 999; }
+  header { text-align: center; padding: 30px 20px 20px; }
+  header h1 { font-size: 1.6rem; font-weight: 700; color: #64d2ff; letter-spacing: -0.5px; }
+  header p { font-size: 0.85rem; color: #7a8fa0; margin-top: 6px; }
+  .tabs { display: flex; gap: 8px; justify-content: center; margin: 24px 0 20px; flex-wrap: wrap; }
+  .tab { background: #1c2b38; border: 1.5px solid #2a3f52; color: #7a8fa0; padding: 8px 16px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+  .tab.active { background: #64d2ff; border-color: #64d2ff; color: #0f1923; font-weight: 700; }
+  .section { display: none; max-width: 600px; margin: 0 auto; }
+  .section.active { display: block; }
+  .section-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #64d2ff; margin-bottom: 12px; padding-left: 4px; }
+  .card { background: #1c2b38; border: 1px solid #2a3f52; border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+  .card .label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+  .label.pregunta { color: #ff9f43; }
+  .label.respuesta { color: #54c98c; }
+  .label.prediccion { color: #a29bfe; }
+  .label.pasado { color: #fd79a8; }
+  .label.perfecto { color: #74b9ff; }
+  .phrase-en { font-size: 1rem; font-weight: 600; color: #e8edf2; margin-bottom: 4px; line-height: 1.4; }
+  .phrase-es { font-size: 0.8rem; color: #a0b3c2; margin-bottom: 4px; }
+  .phrase-pron { font-size: 0.82rem; color: #64d2ff; font-style: italic; margin-bottom: 10px; }
+  .speak-btn { display: inline-flex; align-items: center; gap: 6px; background: #0f1923; border: 1.5px solid #2a3f52; color: #e8edf2; padding: 7px 14px; border-radius: 20px; font-size: 0.78rem; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+  .speak-btn:hover { border-color: #64d2ff; color: #64d2ff; }
+  .speak-btn.playing { border-color: #54c98c; color: #54c98c; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+  .play-all-btn { display: block; width: 100%; background: #64d2ff; color: #0f1923; border: none; padding: 14px; border-radius: 12px; font-size: 0.9rem; font-weight: 700; cursor: pointer; margin-bottom: 20px; font-family: inherit; transition: opacity 0.2s; }
+  .play-all-btn:hover { opacity: 0.85; }
+  .play-all-btn.playing { background: #54c98c; }
+  .tip { background: #1c2b38; border-left: 3px solid #64d2ff; border-radius: 8px; padding: 12px 14px; font-size: 0.8rem; color: #7a8fa0; margin-bottom: 16px; line-height: 1.5; }
+  .tip strong { color: #e8edf2; }
+  .card.tema { border-style: dashed; }
+  .par { border-left: 2px solid #2a3f52; padding-left: 10px; margin-bottom: 12px; }
+  .loop-btn { width: 100%; background: transparent; border: 1.5px dashed #2a3f52; color: #7a8fa0; padding: 9px; border-radius: 12px; font-size: 0.78rem; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+  .loop-btn:hover { border-color: #a29bfe; color: #a29bfe; }
+  .loop-btn.playing { border-style: solid; border-color: #54c98c; color: #54c98c; animation: pulse 1s infinite; }
+  .controles-sesion { display: flex; gap: 8px; margin-bottom: 20px; }
+  .controles-sesion .play-all-btn { flex: 1; margin-bottom: 0; }
+  .bucle-sesion-btn { background: #1c2b38; border: 1.5px solid #2a3f52; color: #7a8fa0; padding: 0 16px; border-radius: 12px; font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; transition: all 0.2s; }
+  .bucle-sesion-btn.activo { background: #a29bfe; border-color: #a29bfe; color: #0f1923; }
+  .estado-pantalla { min-height: 1em; font-size: 0.75rem !important; }
+  .divider { height: 1px; background: #2a3f52; margin: 16px 0; }
+</style>
+</head>
+<body>
+
+<div class="watermark">by Chiguin ✨</div>
+
+<header>
+  <h1>📘 Oral Midterm</h1>
+  <p>Toca ▶ para escuchar cada frase en inglés</p>
+  <p class="estado-pantalla" id="estadoPantalla"></p>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="showSection('parteA', this)">A · Ask your partner</button>
+  <button class="tab" onclick="showSection('trucos', this)">🔑 Para memorizar</button>
+  <button class="tab" onclick="showSection('parteB', this)">B · Answer these questions</button>
+</div>
+
+<div class="section active" id="parteA">
+  <div class="tip">
+    <strong>Ask your partner about...</strong> Pregúntale a tu compañero/a. En la prueba verás el tema de la foto: haz la pregunta y practica la respuesta.
+  </div>
+
+  <div class="controles-sesion">
+    <button class="play-all-btn" onclick="reproducirSesion('parteA', this)">▶ Escuchar todo seguido</button>
+    <button class="bucle-sesion-btn" id="bucle-parteA" onclick="alternarBucleSesion(this)">🔁 Bucle: OFF</button>
+  </div>
+
+  <div class="section-title">1</div>
+  <div class="card tema">
+    <div class="label prediccion">📷 Tema de la foto</div>
+    <div class="phrase-en">His/her plans for after the test</div>
+    <div class="phrase-es">🇨🇱 Sus planes para después de la prueba</div>
+  </div>
+  <div class="par">
+    <div class="card" data-text="What are your plans for after the test?">
+      <div class="label pregunta">Pregunta</div>
+      <div class="phrase-en">What are your plans for after the test?</div>
+      <div class="phrase-pron">🔊 Uát ar yor plans for áfter de test?</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <div class="card" data-text="My plan is to go to work.">
+      <div class="label respuesta">Respuesta</div>
+      <div class="phrase-en">My plan is to go to work.</div>
+      <div class="phrase-pron">🔊 Mai plan is tu góu tu uérk.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <button class="loop-btn" onclick="repetirPar(this)">🔁 Bucle pregunta + respuesta</button>
+  </div>
+  <div class="divider"></div>
+
+  <div class="section-title">2</div>
+  <div class="card tema">
+    <div class="label prediccion">📷 Tema de la foto</div>
+    <div class="phrase-en">His/her last birthday</div>
+    <div class="phrase-es">🇨🇱 Su último cumpleaños</div>
+  </div>
+  <div class="par">
+    <div class="card" data-text="What did you do on your last birthday?">
+      <div class="label pregunta">Pregunta</div>
+      <div class="phrase-en">What did you do on your last birthday?</div>
+      <div class="phrase-pron">🔊 Uát did yu dú on yor last bérzdei?</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <div class="card" data-text="I celebrated with my family.">
+      <div class="label respuesta">Respuesta</div>
+      <div class="phrase-en">I celebrated with my family.</div>
+      <div class="phrase-pron">🔊 Ai sélebreitid uiz mai fámili.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <button class="loop-btn" onclick="repetirPar(this)">🔁 Bucle pregunta + respuesta</button>
+  </div>
+  <div class="divider"></div>
+
+  <div class="section-title">3</div>
+  <div class="card tema">
+    <div class="label prediccion">📷 Tema de la foto</div>
+    <div class="phrase-en">A recent past vacation</div>
+    <div class="phrase-es">🇨🇱 Unas vacaciones recientes</div>
+  </div>
+  <div class="par">
+    <div class="card" data-text="Where did you go on your last vacation?">
+      <div class="label pregunta">Pregunta</div>
+      <div class="phrase-en">Where did you go on your last vacation?</div>
+      <div class="phrase-pron">🔊 Uér did yu góu on yor last veikéishon?</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <div class="card" data-text="I went to Europe with my older sister.">
+      <div class="label respuesta">Respuesta</div>
+      <div class="phrase-en">I went to Europe with my older sister.</div>
+      <div class="phrase-pron">🔊 Ai uént tu Yúrop uiz mai óulder síster.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <button class="loop-btn" onclick="repetirPar(this)">🔁 Bucle pregunta + respuesta</button>
+  </div>
+  <div class="divider"></div>
+
+  <div class="section-title">4</div>
+  <div class="card tema">
+    <div class="label prediccion">📷 Tema de la foto</div>
+    <div class="phrase-en">His/her interests in music and movies</div>
+    <div class="phrase-es">🇨🇱 Sus gustos en música y películas</div>
+  </div>
+  <div class="par">
+    <div class="card" data-text="What kind of music and movies do you like?">
+      <div class="label pregunta">Pregunta</div>
+      <div class="phrase-en">What kind of music and movies do you like?</div>
+      <div class="phrase-pron">🔊 Uát káind ov miúzik and múvis du yu láik?</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <div class="card" data-text="I like rock music and action movies.">
+      <div class="label respuesta">Respuesta</div>
+      <div class="phrase-en">I like rock music and action movies.</div>
+      <div class="phrase-pron">🔊 Ai láik rok miúzik and ákshon múvis.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <button class="loop-btn" onclick="repetirPar(this)">🔁 Bucle pregunta + respuesta</button>
+  </div>
+  <div class="divider"></div>
+
+  <div class="section-title">5</div>
+  <div class="card tema">
+    <div class="label prediccion">📷 Tema de la foto</div>
+    <div class="phrase-en">His/her plans for tonight</div>
+    <div class="phrase-es">🇨🇱 Sus planes para esta noche</div>
+  </div>
+  <div class="par">
+    <div class="card" data-text="What are your plans for tonight?">
+      <div class="label pregunta">Pregunta</div>
+      <div class="phrase-en">What are your plans for tonight?</div>
+      <div class="phrase-pron">🔊 Uát ar yor plans for tunáit?</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <div class="card" data-text="My plan is to sleep a lot.">
+      <div class="label respuesta">Respuesta</div>
+      <div class="phrase-en">My plan is to sleep a lot.</div>
+      <div class="phrase-pron">🔊 Mai plan is tu slíip a lát.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <button class="loop-btn" onclick="repetirPar(this)">🔁 Bucle pregunta + respuesta</button>
+  </div>
+  <div class="divider"></div>
+
+  <div class="section-title">6</div>
+  <div class="card tema">
+    <div class="label prediccion">📷 Tema de la foto</div>
+    <div class="phrase-en">His/her last summer</div>
+    <div class="phrase-es">🇨🇱 Su último verano</div>
+  </div>
+  <div class="par">
+    <div class="card" data-text="What did you do last summer?">
+      <div class="label pregunta">Pregunta</div>
+      <div class="phrase-en">What did you do last summer?</div>
+      <div class="phrase-pron">🔊 Uát did yu dú last sámer?</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <div class="card" data-text="I traveled with my family.">
+      <div class="label respuesta">Respuesta</div>
+      <div class="phrase-en">I traveled with my family.</div>
+      <div class="phrase-pron">🔊 Ai tráveld uiz mai fámili.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <button class="loop-btn" onclick="repetirPar(this)">🔁 Bucle pregunta + respuesta</button>
+  </div>
+  <div class="divider"></div>
+
+  <div class="section-title">7</div>
+  <div class="card tema">
+    <div class="label prediccion">📷 Tema de la foto</div>
+    <div class="phrase-en">A recent trip he/she took</div>
+    <div class="phrase-es">🇨🇱 Un viaje reciente que hizo</div>
+  </div>
+  <div class="par">
+    <div class="card" data-text="Where did you go on your last trip?">
+      <div class="label pregunta">Pregunta</div>
+      <div class="phrase-en">Where did you go on your last trip?</div>
+      <div class="phrase-pron">🔊 Uér did yu góu on yor last trip?</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <div class="card" data-text="I went to Europe.">
+      <div class="label respuesta">Respuesta</div>
+      <div class="phrase-en">I went to Europe.</div>
+      <div class="phrase-pron">🔊 Ai uént tu Yúrop.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <button class="loop-btn" onclick="repetirPar(this)">🔁 Bucle pregunta + respuesta</button>
+  </div>
+  <div class="divider"></div>
+
+  <div class="section-title">8</div>
+  <div class="card tema">
+    <div class="label prediccion">📷 Tema de la foto</div>
+    <div class="phrase-en">Yesterday</div>
+    <div class="phrase-es">🇨🇱 Ayer</div>
+  </div>
+  <div class="par">
+    <div class="card" data-text="What did you do yesterday?">
+      <div class="label pregunta">Pregunta</div>
+      <div class="phrase-en">What did you do yesterday?</div>
+      <div class="phrase-pron">🔊 Uát did yu dú yésterdei?</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <div class="card" data-text="I studied yesterday.">
+      <div class="label respuesta">Respuesta</div>
+      <div class="phrase-en">I studied yesterday.</div>
+      <div class="phrase-pron">🔊 Ai stádid yésterdei.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <button class="loop-btn" onclick="repetirPar(this)">🔁 Bucle pregunta + respuesta</button>
+  </div>
+</div>
+
+<div class="section" id="trucos">
+  <div class="tip">
+    Fíjate que <strong>no necesitas memorizar 8 estructuras diferentes</strong>. Varias se repiten.
+  </div>
+
+  <div class="card">
+    <div class="label prediccion">Planes → What are your plans for...?</div>
+    <div class="phrase-en">1️⃣ What are your plans for after the test?</div>
+    <div class="phrase-en">5️⃣ What are your plans for tonight?</div>
+  </div>
+
+  <div class="card">
+    <div class="label pasado">Pasado → What did you do...?</div>
+    <div class="phrase-en">2️⃣ What did you do on your last birthday?</div>
+    <div class="phrase-en">6️⃣ What did you do last summer?</div>
+    <div class="phrase-en">8️⃣ What did you do yesterday?</div>
+  </div>
+
+  <div class="card">
+    <div class="label perfecto">Lugar en pasado → Where did you go...?</div>
+    <div class="phrase-en">3️⃣ Where did you go on your last vacation?</div>
+    <div class="phrase-en">7️⃣ Where did you go on your last trip?</div>
+  </div>
+
+  <div class="tip">
+    Si dominas <strong>What are your plans...? / What did you do...? / Where did you go...?</strong>, ya tienes <strong>7 de las 8</strong> bastante encaminadas.
+  </div>
+</div>
+
+<div class="section" id="parteB">
+  <div class="tip">
+    <strong>Answer these questions</strong> — Responde estas preguntas. Debajo de cada pregunta está su significado.
+  </div>
+
+  <div class="controles-sesion">
+    <button class="play-all-btn" onclick="reproducirSesion('parteB', this)">▶ Escuchar todo seguido</button>
+    <button class="bucle-sesion-btn" id="bucle-parteB" onclick="alternarBucleSesion(this)">🔁 Bucle: OFF</button>
+  </div>
+
+  <div class="section-title">9</div>
+  <div class="par">
+    <div class="card" data-text="What do you do in your free time?">
+      <div class="label pregunta">Pregunta</div>
+      <div class="phrase-en">What do you do in your free time?</div>
+      <div class="phrase-es">🇨🇱 ¿Qué haces en tu tiempo libre?</div>
+      <div class="phrase-pron">🔊 Uát du yu dú in yor frí táim?</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <div class="card" data-text="I play video games and watch movies.">
+      <div class="label respuesta">Respuesta</div>
+      <div class="phrase-en">I play video games and watch movies.</div>
+      <div class="phrase-pron">🔊 Ai pléi vídeo gueims and uách múvis.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <button class="loop-btn" onclick="repetirPar(this)">🔁 Bucle pregunta + respuesta</button>
+  </div>
+  <div class="divider"></div>
+
+  <div class="section-title">10</div>
+  <div class="par">
+    <div class="card" data-text="Describe your personality with three adjectives. Give reasons for the adjectives.">
+      <div class="label pregunta">Pregunta</div>
+      <div class="phrase-en">Describe your personality with three adjectives. Give reasons for the adjectives.</div>
+      <div class="phrase-es">🇨🇱 Describe tu personalidad con tres adjetivos y da razones.</div>
+      <div class="phrase-pron">🔊 Diskráib yor personáliti uiz zrí ádyectivs. Guiv rízons for di ádyectivs.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <div class="card" data-text="I am friendly because I like helping people. I am responsible because I work and study. I am hardworking because I always try to do my best.">
+      <div class="label respuesta">Respuesta</div>
+      <div class="phrase-en">I am friendly because I like helping people. I am responsible because I work and study. I am hardworking because I always try to do my best.</div>
+      <div class="phrase-pron">🔊 Ai am fréndli bicóz ai láik jélping pípol. Ai am rispónsabol bicóz ai uérk and stádi. Ai am járd-uérking bicóz ai ólweis trai tu dú mai best.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <button class="loop-btn" onclick="repetirPar(this)">🔁 Bucle pregunta + respuesta</button>
+  </div>
+  <div class="divider"></div>
+
+  <div class="section-title">11</div>
+  <div class="par">
+    <div class="card" data-text="Talk about your plans for next year.">
+      <div class="label pregunta">Pregunta</div>
+      <div class="phrase-en">Talk about your plans for next year.</div>
+      <div class="phrase-es">🇨🇱 Habla de tus planes para el próximo año.</div>
+      <div class="phrase-pron">🔊 Tók abáut yor plans for nekst yír.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <div class="card" data-text="Next year, I plan to study and work.">
+      <div class="label respuesta">Respuesta</div>
+      <div class="phrase-en">Next year, I plan to study and work.</div>
+      <div class="phrase-pron">🔊 Nekst yír, ai plan tu stádi and uérk.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <button class="loop-btn" onclick="repetirPar(this)">🔁 Bucle pregunta + respuesta</button>
+  </div>
+  <div class="divider"></div>
+
+  <div class="section-title">12</div>
+  <div class="par">
+    <div class="card" data-text="Do you exercise or play any sports? Why?">
+      <div class="label pregunta">Pregunta</div>
+      <div class="phrase-en">Do you exercise or play any sports? Why?</div>
+      <div class="phrase-es">🇨🇱 ¿Haces ejercicio o practicas algún deporte? ¿Por qué?</div>
+      <div class="phrase-pron">🔊 Du yu éksersaiz or pléi éni sports? Uái?</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <div class="card" data-text="No, I don&#x27;t play any sports because I don&#x27;t have much free time.">
+      <div class="label respuesta">Respuesta</div>
+      <div class="phrase-en">No, I don&#x27;t play any sports because I don&#x27;t have much free time.</div>
+      <div class="phrase-pron">🔊 Nóu, ai dóunt pléi éni sports bicóz ai dóunt jav mach frí táim.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <button class="loop-btn" onclick="repetirPar(this)">🔁 Bucle pregunta + respuesta</button>
+  </div>
+  <div class="divider"></div>
+
+  <div class="section-title">13</div>
+  <div class="par">
+    <div class="card" data-text="Did you like your last vacation? Why?">
+      <div class="label pregunta">Pregunta</div>
+      <div class="phrase-en">Did you like your last vacation? Why?</div>
+      <div class="phrase-es">🇨🇱 ¿Te gustaron tus últimas vacaciones? ¿Por qué?</div>
+      <div class="phrase-pron">🔊 Did yu láik yor last veikéishon? Uái?</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <div class="card" data-text="Yes, I did. It was an amazing trip.">
+      <div class="label respuesta">Respuesta</div>
+      <div class="phrase-en">Yes, I did. It was an amazing trip.</div>
+      <div class="phrase-pron">🔊 Yes, ai did. It uaz an améizing trip.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <button class="loop-btn" onclick="repetirPar(this)">🔁 Bucle pregunta + respuesta</button>
+  </div>
+  <div class="divider"></div>
+
+  <div class="section-title">14</div>
+  <div class="par">
+    <div class="card" data-text="Describe a person you know well (personality and physical appearance).">
+      <div class="label pregunta">Pregunta</div>
+      <div class="phrase-en">Describe a person you know well (personality and physical appearance).</div>
+      <div class="phrase-es">🇨🇱 Describe a alguien que conozcas bien: personalidad y apariencia física.</div>
+      <div class="phrase-pron">🔊 Diskráib a pérson yu nóu uél. Personáliti and físikal apírans.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <div class="card" data-text="My sister is friendly and funny. She has long hair and brown eyes.">
+      <div class="label respuesta">Respuesta</div>
+      <div class="phrase-en">My sister is friendly and funny. She has long hair and brown eyes.</div>
+      <div class="phrase-pron">🔊 Mai síster is fréndli and fáni. Shi jaz long jér and bráun áis.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <button class="loop-btn" onclick="repetirPar(this)">🔁 Bucle pregunta + respuesta</button>
+  </div>
+  <div class="divider"></div>
+
+  <div class="section-title">15</div>
+  <div class="par">
+    <div class="card" data-text="Describe a memorable vacation you had.">
+      <div class="label pregunta">Pregunta</div>
+      <div class="phrase-en">Describe a memorable vacation you had.</div>
+      <div class="phrase-es">🇨🇱 Describe unas vacaciones memorables que hayas tenido.</div>
+      <div class="phrase-pron">🔊 Diskráib a mémorabol veikéishon yu jad.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <div class="card" data-text="Last January, I traveled to Europe with my older sister. It was an amazing trip.">
+      <div class="label respuesta">Respuesta</div>
+      <div class="phrase-en">Last January, I traveled to Europe with my older sister. It was an amazing trip.</div>
+      <div class="phrase-pron">🔊 Last Yánuari, ai tráveld tu Yúrop uiz mai óulder síster. It uaz an améizing trip.</div>
+      <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+    </div>
+    <button class="loop-btn" onclick="repetirPar(this)">🔁 Bucle pregunta + respuesta</button>
+  </div>
+</div>
+
+<script>
+  const PAUSA_ENTRE_FRASES_MS = 800;
+  let reproduccionActual = null;
+  let bloqueoPantalla = null;
+
+  function mostrarEstadoPantalla(mensaje) {
+    document.getElementById('estadoPantalla').textContent = mensaje;
+  }
+
+  async function mantenerPantallaEncendida() {
+    if (!('wakeLock' in navigator)) {
+      mostrarEstadoPantalla('⚠️ Este navegador no puede mantener la pantalla encendida. Súbele el tiempo de apagado al teléfono.');
+      return;
+    }
+    try {
+      bloqueoPantalla = await navigator.wakeLock.request('screen');
+      mostrarEstadoPantalla('🔆 Pantalla encendida mientras suena el audio');
+      bloqueoPantalla.addEventListener('release', () => { bloqueoPantalla = null; });
+    } catch (error) {
+      console.warn('No se pudo mantener la pantalla encendida:', error.name, error.message);
+      mostrarEstadoPantalla('⚠️ No se pudo mantener la pantalla encendida. Súbele el tiempo de apagado al teléfono.');
+    }
+  }
+
+  function liberarPantalla() {
+    mostrarEstadoPantalla('');
+    if (!bloqueoPantalla) return;
+    bloqueoPantalla.release().catch(error => console.warn('No se pudo liberar la pantalla:', error.message));
+    bloqueoPantalla = null;
+  }
+
+  // El navegador suelta el wake lock al cambiar de app; se pide de nuevo al volver.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && reproduccionActual && !bloqueoPantalla) {
+      mantenerPantallaEncendida();
+    }
+  });
+
+  function iniciarReproduccion(textos, boton, debeRepetir) {
+    detenerReproduccion();
+    const reproduccion = { textos, boton, etiquetaOriginal: boton.textContent, debeRepetir, indice: 0 };
+    reproduccionActual = reproduccion;
+    boton.classList.add('playing');
+    boton.textContent = '⏹ Detener';
+    mantenerPantallaEncendida();
+    reproducirSiguienteFrase(reproduccion);
+  }
+
+  function reproducirSiguienteFrase(reproduccion) {
+    if (reproduccionActual !== reproduccion) return;
+
+    if (reproduccion.indice >= reproduccion.textos.length) {
+      if (!reproduccion.debeRepetir()) {
+        detenerReproduccion();
+        return;
+      }
+      reproduccion.indice = 0;
+    }
+
+    const frase = new SpeechSynthesisUtterance(reproduccion.textos[reproduccion.indice]);
+    frase.lang = 'en-US';
+    frase.rate = 0.85;
+    frase.onend = () => {
+      reproduccion.indice++;
+      setTimeout(() => reproducirSiguienteFrase(reproduccion), PAUSA_ENTRE_FRASES_MS);
+    };
+    frase.onerror = evento => {
+      if (evento.error === 'canceled' || evento.error === 'interrupted') return;
+      console.warn('Error de voz:', evento.error);
+      detenerReproduccion();
+      mostrarEstadoPantalla('⚠️ No se pudo reproducir el audio. Intenta de nuevo.');
+    };
+    window.speechSynthesis.speak(frase);
+  }
+
+  function detenerReproduccion() {
+    const reproduccion = reproduccionActual;
+    reproduccionActual = null;
+    window.speechSynthesis.cancel();
+    if (reproduccion) {
+      reproduccion.boton.classList.remove('playing');
+      reproduccion.boton.textContent = reproduccion.etiquetaOriginal;
+    }
+    liberarPantalla();
+  }
+
+  function estaSonando(boton) {
+    return reproduccionActual && reproduccionActual.boton === boton;
+  }
+
+  function speak(boton) {
+    if (estaSonando(boton)) { detenerReproduccion(); return; }
+    iniciarReproduccion([boton.closest('.card').dataset.text], boton, () => false);
+  }
+
+  function repetirPar(boton) {
+    if (estaSonando(boton)) { detenerReproduccion(); return; }
+    const textosPar = Array.from(boton.closest('.par').querySelectorAll('.card[data-text]')).map(tarjeta => tarjeta.dataset.text);
+    iniciarReproduccion(textosPar, boton, () => true);
+  }
+
+  function reproducirSesion(idSeccion, boton) {
+    if (estaSonando(boton)) { detenerReproduccion(); return; }
+    const seccion = document.getElementById(idSeccion);
+    const textosSesion = Array.from(seccion.querySelectorAll('.card[data-text]')).map(tarjeta => tarjeta.dataset.text);
+    const botonBucle = document.getElementById('bucle-' + idSeccion);
+    iniciarReproduccion(textosSesion, boton, () => botonBucle.classList.contains('activo'));
+  }
+
+  function alternarBucleSesion(boton) {
+    const bucleActivo = boton.classList.toggle('activo');
+    boton.textContent = bucleActivo ? '🔁 Bucle: ON' : '🔁 Bucle: OFF';
+  }
+
+  function showSection(id, tabEl) {
+    detenerReproduccion();
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    tabEl.classList.add('active');
+  }
+</script>
+
+</body>
+</html>
