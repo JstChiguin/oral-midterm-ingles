@@ -332,6 +332,7 @@
       <div class="phrase-en">I am friendly because I like helping people. I am responsible because I work and study. I am hardworking because I always try to do my best.</div>
       <div class="phrase-pron">🔊 Ai am fréndli bicóz ai láik jélping pípol. Ai am rispónsabol bicóz ai uérk and stádi. Ai am járd-uérking bicóz ai ólweis trai tu dú mai best.</div>
       <button class="speak-btn" onclick="speak(this)">▶ Escuchar</button>
+      <button class="loop-btn" onclick="repetirRespuesta(this)">🔁 Bucle respuesta</button>
     </div>
     <button class="loop-btn" onclick="repetirPar(this)">🔁 Bucle pregunta + respuesta</button>
   </div>
@@ -531,6 +532,12 @@
     if (estaSonando(boton)) { detenerReproduccion(); return; }
     const textosPar = Array.from(boton.closest('.par').querySelectorAll('.card[data-text]')).map(tarjeta => tarjeta.dataset.text);
     iniciarReproduccion(textosPar, boton, () => true);
+  }
+
+  function repetirRespuesta(boton) {
+    if (estaSonando(boton)) { detenerReproduccion(); return; }
+    const textoRespuesta = boton.closest('.card').dataset.text;
+    iniciarReproduccion([textoRespuesta], boton, () => true);
   }
 
   function reproducirSesion(idSeccion, boton) {
